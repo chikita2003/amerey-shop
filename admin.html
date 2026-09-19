@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMEREY SHOP — Gestionnaire de catalogue</title>
+<link href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green-deep:#2C4A3A; --green-soft:#3B5F4C; --cream:#F8F4EC; --sand:#F1E6D6; --gold:#C5714E;
+    --ink:#241F19; --ink-soft:#635B4F; --line: rgba(44,74,58,0.15); --red:#B23A3A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Manrope',sans-serif; background:var(--sand); color:var(--ink);
+    padding:24px 16px 80px;
+  }
+  .wrap{max-width:720px; margin:0 auto;}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;}
+  h1{font-family:'Prata',serif; font-weight:400; font-size:26px; color:var(--green-deep); margin:0;}
+  .badge-pill{
+    background:var(--green-deep); color:var(--cream); font-size:11px; font-weight:700;
+    letter-spacing:0.05em; text-transform:uppercase; padding:6px 12px; border-radius:100px;
+  }
+  .sub{color:var(--ink-soft); font-size:14px; margin-bottom:24px; line-height:1.6;}
+  .card{
+    background:#fff; border-radius:20px; padding:24px; box-shadow:0 10px 30px rgba(44,74,58,0.08);
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-size:14px; text-transform:uppercase; letter-spacing:0.06em; color:var(--green-deep);
+    margin:0 0 16px; display:flex; align-items:center; gap:8px;
+  }
+  .card h2 .n{
+    width:22px; height:22px; border-radius:50%; background:var(--gold); color:#fff;
+    font-size:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  label{display:block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin:14px 0 6px;}
+  label:first-child{margin-top:0;}
+  input[type=text], input[type=number], input[type=password], select, textarea{
+    width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px;
+    font-family:inherit; font-size:14.5px; color:var(--ink); background:#fff;
+  }
+  input:focus, select:focus, textarea:focus{outline:none; border-color:var(--gold);}
+  input[type=file]{
+    width:100%; border:1.5px dashed var(--line); border-radius:12px; padding:14px;
+    font-size:13px; background:var(--sand);
+  }
+  .row{display:flex; gap:12px;}
+  .row > div{flex:1;}
+  .preview{margin-top:12px; display:none;}
+  .preview img{width:100%; max-width:220px; border-radius:12px; display:block;}
+  .checkline{display:flex; align-items:center; gap:8px; margin-top:12px; font-size:12.5px; color:var(--ink-soft);}
+  .checkline input{width:auto;}
+  button{
+    width:100%; padding:15px; border:none; border-radius:100px; background:var(--gold);
+    color:#fff; font-weight:700; font-size:14.5px; letter-spacing:0.02em; cursor:pointer;
+    margin-top:10px; transition:.2s; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  button:hover{opacity:0.92;}
+  button:disabled{opacity:0.35; cursor:not-allowed;}
+  button.ghost{background:none; border:1.5px solid var(--green-deep); color:var(--green-deep);}
+  button.small{width:auto; padding:8px 16px; font-size:12.5px; margin-top:0;}
+  button.danger-small{
+    width:auto; padding:6px 10px; font-size:12px; margin:0; background:none; color:var(--red);
+    border:1px solid rgba(178,58,58,0.35);
+  }
+  .toggle-link{
+    background:none; border:none; color:var(--green-deep); font-size:12.5px; font-weight:700;
+    text-decoration:underline; cursor:pointer; padding:0; width:auto; margin:12px 0 0;
+  }
+  .msg{
+    padding:14px 16px; border-radius:12px; font-size:13.5px; margin-top:14px; display:none; line-height:1.6;
+  }
+  .msg.ok{background:#E6EFE9; color:var(--green-deep); display:block;}
+  .msg.err{background:#FBE6DE; color:#8A3A1E; display:block;}
+  .msg.info{background:#EFEAE0; color:var(--ink-soft); display:block;}
+  .hint{font-size:12px; color:var(--ink-soft); margin-top:6px; line-height:1.5;}
+  .steps{background:#fff; border-radius:16px; padding:20px 22px; margin-bottom:18px; font-size:13.5px; line-height:1.85; color:var(--ink-soft);}
+  .steps b{color:var(--ink);}
+  .status-line{
+    display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft);
+    margin-top:10px; padding:10px 12px; background:var(--sand); border-radius:10px;
+  }
+  .status-line.ok{color:var(--green-deep); background:#E6EFE9;}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--ink-soft); flex-shrink:0;}
+  .status-line.ok .dot{background:var(--green-deep);}
+  .spin{
+    width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4);
+    border-top-color:#fff; animation:sp .7s linear infinite; flex-shrink:0;
+  }
+  @keyframes sp{to{transform:rotate(360deg);}}
+
+  /* --- Liste catalogue --- */
+  .catalog-toolbar{display:flex; gap:10px; align-items:center; margin:0 0 14px; flex-wrap:wrap;}
+  .catalog-toolbar input{flex:1 1 220px; padding:10px 12px; font-size:13px;}
+  .filter-group{display:flex; gap:6px;}
+  button.filter{width:auto; padding:8px 11px; margin:0; font-size:12px; background:var(--sand); color:var(--green-deep); border:1px solid var(--line);}
+  button.filter.active{background:var(--green-deep); color:#fff; border-color:var(--green-deep);}
+  .cat-list{display:flex; flex-direction:column; gap:10px; max-height:460px; overflow-y:auto; padding-right:2px;}
+  .cat-item{
+    display:flex; align-items:center; gap:12px; padding:10px; border:1px solid var(--line);
+    border-radius:14px; background:var(--sand);
+  }
+  .cat-thumb{
+    width:52px; height:52px; border-radius:10px; object-fit:cover; flex-shrink:0; background:#e3d9c8;
+  }
+  .cat-info{flex:1; min-width:0;}
+  .cat-name{font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .cat-meta{font-size:12px; color:var(--ink-soft); margin-top:2px;}
+  .cat-desc{font-size:11.5px; color:var(--ink-soft); margin-top:3px; font-style:italic; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;}
+  .cat-tag{
+    display:inline-block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em;
+    padding:2px 7px; border-radius:100px; margin-right:6px; font-weight:700;
+  }
+  .cat-tag.femme{background:rgba(197,113,78,0.18); color:var(--gold);}
+  .cat-tag.homme{background:rgba(44,74,58,0.15); color:var(--green-deep);}
+  .cat-empty{font-size:13px; color:var(--ink-soft); text-align:center; padding:20px 0;}
+  .cat-count{font-size:12px; color:var(--ink-soft); font-weight:600; margin-bottom:12px;}
+  button.edit-small{width:auto; padding:6px 10px; font-size:12px; margin:0; background:var(--green-deep);}
+  .item-actions{display:flex; gap:6px; align-items:center; flex-shrink:0;}
+  .form-head{display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:4px;}
+  .form-head h2{margin-bottom:0;}
+  button.cancel-edit{width:auto; padding:7px 10px; margin:0; font-size:12px; background:transparent; color:var(--ink-soft); border:1px solid var(--line);}
+  .form-actions{display:flex; gap:10px; margin-top:18px;}
+  .form-actions button{margin:0;}
+  #actions{position:sticky; bottom:12px; z-index:3; background:rgba(241,230,214,.92); padding:10px; border-radius:18px; backdrop-filter:blur(10px);}
+
+  /* --- Aperçu produit type site --- */
+  .live-preview{margin-top:18px;}
+  .live-preview-label{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); margin-bottom:8px;}
+  .pcard{
+    position:relative; width:170px; aspect-ratio:3/4; border-radius:8px; overflow:hidden;
+    background:#e3d9c8; box-shadow:0 8px 20px rgba(44,74,58,0.15);
+  }
+  .pcard img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover;}
+  .pcard .ph-empty{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:rgba(44,74,58,0.35); font-size:11px; text-align:center; padding:10px; text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .pcard::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(20,20,18,0.88) 0%, rgba(20,20,18,0.15) 45%, transparent 65%);}
+  .pcard .pbadge{
+    position:absolute; top:9px; left:9px; z-index:2; background:var(--gold); color:#fff;
+    font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px; border-radius:100px;
+  }
+  .pcard .pprice{
+    position:absolute; top:9px; right:9px; z-index:2; background:rgba(248,244,236,0.92); color:var(--ink);
+    font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:100px;
+  }
+  .pcard .pbody{position:absolute; left:0; right:0; bottom:0; z-index:2; padding:10px 11px 12px;}
+  .pcard .pcat{font-size:8.5px; letter-spacing:0.08em; text-transform:uppercase; color:rgba(247,242,231,0.7);}
+  .pcard .pname{font-family:'Prata',serif; font-size:13px; color:#F8F4EC; margin-top:2px; line-height:1.2;}
+  .pcard .pcolors{font-size:9.5px; color:rgba(247,242,231,0.65); margin-top:3px; font-style:italic;}
+  @media(max-width:520px){
+    body{padding:16px 12px 100px;}
+    .card{padding:18px; border-radius:16px;}
+    .row{flex-direction:column; gap:0;}
+    .cat-item{align-items:flex-start;}
+    .item-actions{flex-direction:column; align-items:stretch;}
+    .item-actions button{width:100%;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Gestionnaire de catalogue</h1>
+    <span class="badge-pill">AMEREY SHOP</span>
+  </header>
+  <p class="sub">Connecte ton dépôt GitHub, puis gère les articles de ta boutique en toute simplicité.</p>
+
+  <div class="steps" id="stepsBox">Renseigne tes informations GitHub, teste la connexion, puis ouvre le catalogue. Ton token n'est jamais enregistré.</div>
+
+  <div class="card">
+    <h2><span class="n">1</span>Connexion au gestionnaire</h2>
+
+    <div id="githubSection">
+      <label>Propriétaire du dépôt (ton pseudo GitHub)</label>
+      <input type="text" id="gh-owner" placeholder="Ex : ravi-dev">
+      <label>Nom du dépôt</label>
+      <input type="text" id="gh-repo" placeholder="Ex : amerey-shop">
+      <div class="row">
+        <div>
+          <label>Branche</label>
+          <input type="text" id="gh-branch" value="main">
+        </div>
+        <div>
+          <label>Chemin du fichier</label>
+          <input type="text" id="gh-path" value="data/catalogue.json">
+        </div>
+      </div>
+      <label>Token d'accès GitHub</label>
+      <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off">
+      <p class="hint">Le token est utilisé uniquement pendant cette session et n'est jamais mémorisé. Crée un token <b>fine-grained</b>, limité à ce dépôt, avec la permission <b>Contents : Read and write</b>.</p>
+      <button class="ghost" id="btnLoadGithub" type="button">Tester la connexion</button>
+      <div class="status-line" id="githubStatus"><span class="dot"></span><span>Pas encore connecté</span></div>
+      <button id="btnOpenCatalog" type="button" disabled>Ouvrir le catalogue</button>
+
+      <button class="toggle-link" id="toggleManual" type="button">Charger un fichier manuellement</button>
+    </div>
+
+    <div id="manualSection" style="display:none; margin-top:18px; border-top:1px solid var(--line); padding-top:18px;">
+      <label>Fichier .html du site</label>
+      <input type="file" id="siteFile" accept=".html">
+      <div class="status-line" id="manualStatus"><span class="dot"></span><span>Aucun fichier chargé</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="catalogCard" style="display:none;">
+    <div class="form-head"><h2><span class="n">2</span>Catalogue</h2><button class="small" id="btnAddArticle" type="button">+ Ajouter</button></div>
+    <div class="cat-count" id="catCount"></div>
+    <div class="catalog-toolbar">
+      <input type="text" id="catalogSearch" placeholder="Rechercher un article…">
+      <div class="filter-group">
+        <button class="filter active" data-filter="tout" type="button">Tout</button>
+        <button class="filter" data-filter="femme" type="button">Femme</button>
+        <button class="filter" data-filter="homme" type="button">Homme</button>
+      </div>
+    </div>
+    <div class="cat-list" id="catList"></div>
+  </div>
+
+  <div class="card" id="newArticleCard" style="display:none;">
+    <div class="form-head"><h2 id="articleFormTitle"><span class="n">3</span>Nouvel article</h2><button class="cancel-edit" id="btnCancelEdit" type="button" style="display:none;">Annuler</button></div>
+
+    <label>Photo de l'article</label>
+    <input type="file" id="photoFile" accept="image/*">
+    <div class="preview" id="preview"><img id="previewImg"></div>
+
+    <label>Nom de l'article</label>
+    <input type="text" id="name" placeholder="Ex : Robe wax imprimée">
+
+    <label>Description (optionnel)</label>
+    <textarea id="desc" rows="3" placeholder="Ex : Tissu wax 100% coton, coupe cintrée, doublure intérieure."></textarea>
+
+    <div class="row">
+      <div>
+        <label>Prix (FCFA)</label>
+        <input type="number" id="price" placeholder="Ex : 28000">
+      </div>
+      <div>
+        <label>Collection</label>
+        <select id="category">
+          <option value="femme">Femme</option>
+          <option value="homme">Homme</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Type</label>
+        <select id="sub">
+          <option value="tenue">Complet (tenue complète)</option>
+          <option value="haut">Chemise / Haut</option>
+          <option value="bas">Bas (pantalon / jupe)</option>
+        </select>
+      </div>
+      <div>
+        <label>Badge (optionnel)</label>
+        <input type="text" id="badge" list="badge-suggestions" placeholder="Ex : Premium">
+        <datalist id="badge-suggestions">
+          <option value="Premium">
+          <option value="Promo">
+          <option value="Nouveau">
+          <option value="Meilleure vente">
+          <option value="Édition limitée">
+        </datalist>
+      </div>
+    </div>
+
+    <label>Autres coloris disponibles (optionnel)</label>
+    <input type="text" id="colors" placeholder="Ex : Rose, Vert sauge, Marron">
+    <p class="hint">Sépare les couleurs par une virgule. Elles s'afficheront sous le nom de l'article sur le site ("Existe aussi en : ...").</p>
+
+    <div class="live-preview">
+      <div class="live-preview-label">Aperçu tel qu'il apparaîtra sur le site</div>
+      <div class="pcard" id="pcard">
+        <div class="ph-empty" id="pcard-empty">Photo de l'article</div>
+        <img id="pcard-img" style="display:none;">
+        <span class="pbadge" id="pcard-badge" style="display:none;"></span>
+        <span class="pprice" id="pcard-price"></span>
+        <div class="pbody">
+          <div class="pcat" id="pcard-cat">Chemise</div>
+          <div class="pname" id="pcard-name">Nom de l'article</div>
+          <div class="pcolors" id="pcard-desc" style="display:none;"></div>
+          <div class="pcolors" id="pcard-colors" style="display:none;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="ghost" id="btnResetForm" type="button">Effacer</button>
+      <button id="btnSaveArticle" type="button">Ajouter au catalogue</button>
+    </div>
+  </div>
+
+  <div id="actions" style="display:none;">
+    <button id="btnPublish" type="button" style="display:none;">Publier sur GitHub Pages</button>
+    <button id="btnDownload" class="ghost" type="button">Télécharger le fichier mis à jour</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+</div>
+
+<script>
+/* ============ ÉTAT ============ */
+let siteHtml = null;
+let siteFileName = 'catalogue.json';
+let photoDataUri = null;
+let githubConnected = false;
+let ghCfg = {owner:'', repo:'', branch:'main', path:'data/catalogue.json', token:''};
+let catalogData = null;
+let hasPendingDelete = false;
+let catalogItems = []; // {category, sub, name, price, photo, badge, colors, start, end}
+let catalogFilter = 'tout';
+let editingIndex = null;
+let hasPendingChanges = false;
+let connectionTested = false;
+
+const $ = (id) => document.getElementById(id);
+const msg = $('msg');
+
+$('catalogSearch').addEventListener('input', renderCatalogList);
+document.querySelectorAll('[data-filter]').forEach(btn => btn.addEventListener('click', () => {
+  catalogFilter = btn.dataset.filter;
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('active', b === btn));
+  renderCatalogList();
+}));
+$('btnAddArticle').addEventListener('click', () => {
+  resetArticleForm();
+  $('newArticleCard').scrollIntoView({behavior:'smooth', block:'start'});
+});
+$('btnSaveArticle').addEventListener('click', saveArticle);
+$('btnResetForm').addEventListener('click', resetArticleForm);
+$('btnCancelEdit').addEventListener('click', resetArticleForm);
+
+/* ============ Encodage UTF-8 <-> base64 (pour l'API GitHub) ============ */
+function b64EncodeUnicode(str){
+  const bytes = new TextEncoder().encode(str);
+  let binary = ''; const chunk = 0x8000;
+  for (let i=0;i<bytes.length;i+=chunk){ binary += String.fromCharCode.apply(null, bytes.subarray(i,i+chunk)); }
+  return btoa(binary);
+}
+function b64DecodeUnicode(b64){
+  const binary = atob(b64.replace(/\n/g,''));
+  const bytes = new Uint8Array(binary.length);
+  for (let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+/* ============ Préférences locales (jamais le token) ============ */
+function loadPrefs(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('amerey_gh_prefs') || '{}');
+    if(saved.owner) $('gh-owner').value = saved.owner;
+    if(saved.repo) $('gh-repo').value = saved.repo;
+    if(saved.branch) $('gh-branch').value = saved.branch;
+    if(saved.path) $('gh-path').value = saved.path;
+  }catch(e){}
+}
+function savePrefs(){
+  const data = {
+    owner: $('gh-owner').value.trim(), repo: $('gh-repo').value.trim(),
+    branch: $('gh-branch').value.trim() || 'main', path: $('gh-path').value.trim() || 'data/catalogue.json'
+  };
+  localStorage.setItem('amerey_gh_prefs', JSON.stringify(data));
+}
+loadPrefs();
+
+/* ============ Bascule mode manuel ============ */
+$('toggleManual').addEventListener('click', () => {
+  const sec = $('manualSection');
+  sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+});
+
+/* ============ Chargement manuel ============ */
+$('siteFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  siteFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const content = ev.target.result;
+    if (!content.trim().startsWith('{') && (!content.includes('const PHOTOS = {') || !content.includes('const PRODUCTS = {'))) {
+      setStatus('manualStatus', false, "⚠️ Ce fichier ne ressemble pas au bon fichier de site.");
+      return;
+    }
+    siteHtml = content;
+    githubConnected = false;
+    connectionTested = true;
+    setStatus('manualStatus', true, "✓ Fichier chargé : " + file.name);
+    onSiteLoaded();
+  };
+  reader.readAsText(file);
+});
+
+/* ============ Chargement direct depuis GitHub ============ */
+$('btnLoadGithub').addEventListener('click', async () => {
+  const owner = $('gh-owner').value.trim();
+  const repo = $('gh-repo').value.trim();
+  const branch = $('gh-branch').value.trim() || 'main';
+  const path = $('gh-path').value.trim() || 'data/catalogue.json';
+  const token = $('gh-token').value.trim();
+  if(!owner || !repo || !token){
+    setStatus('githubStatus', false, "Renseigne au minimum le propriétaire, le dépôt et le token.");
+    return;
+  }
+  ghCfg = {owner, repo, branch, path, token};
+  savePrefs();
+  connectionTested = false;
+  $('btnOpenCatalog').disabled = true;
+  const btn = $('btnLoadGithub');
+  btn.disabled = true;
+  setStatus('githubStatus', null, "Connexion à GitHub en cours…", true);
+  try{
+    const content = await ghTestAccess(ghCfg);
+    siteHtml = content;
+    siteFileName = path.split('/').pop();
+    githubConnected = true;
+    connectionTested = true;
+    $('btnOpenCatalog').disabled = false;
+    setStatus('githubStatus', true, `✓ Connexion réussie — dépôt ${owner}/${repo} · branche ${branch}`);
+  }catch(err){
+    githubConnected = false;
+    setStatus('githubStatus', false, ghErrorMessage(err));
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+$('btnOpenCatalog').addEventListener('click', () => {
+  if(!connectionTested || !siteHtml) return;
+  onSiteLoaded();
+  $('stepsBox').style.display = 'none';
+  $('catalogCard').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+['gh-owner','gh-repo','gh-branch','gh-path','gh-token'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    connectionTested = false;
+    $('btnOpenCatalog').disabled = true;
+  });
+});
+
+function ghErrorMessage(err){
+  const m = (err && err.message) || '';
+  if(m.includes('401')) return "Token invalide ou expiré. Vérifie la permission « Contents : Read and write » du dépôt.";
+  if(m.includes('404')) return "Dépôt, branche ou fichier introuvable. Vérifie le propriétaire, le nom du dépôt et le chemin.";
+  if(m.includes('403')) return "Accès refusé. Le token n'a peut-être pas les droits d'écriture nécessaires.";
+  return "Erreur de connexion à GitHub : " + m;
+}
+
+async function ghApi(url, opts){
+  opts = opts || {};
+  opts.headers = Object.assign({
+    'Authorization': 'token ' + ghCfg.token,
+    'Accept': 'application/vnd.github+json'
+  }, opts.headers || {});
+  const res = await fetch(url, opts);
+  if(!res.ok){
+    const body = await res.text().catch(()=> '');
+    throw new Error(res.status + ' ' + res.statusText + (body ? ' — ' + body.slice(0,200) : ''));
+  }
+  return res.json();
+}
+
+async function ghReadFile(cfg){
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
+  const ref = await ghApi(`${base}/git/ref/heads/${encodeURIComponent(cfg.branch)}`);
+  const commitSha = ref.object.sha;
+  const commit = await ghApi(`${base}/git/commits/${commitSha}`);
+  const treeSha = commit.tree.sha;
+  const tree = await ghApi(`${base}/git/trees/${treeSha}?recursive=1`);
+  const entry = tree.tree.find(t => t.path === cfg.path);
+  if(!entry) throw new Error('404 fichier "' + cfg.path + '" introuvable dans le dépôt');
+  const blob = await ghApi(`${base}/git/blobs/${entry.sha}`);
+  return b64DecodeUnicode(blob.content);
+}
+
+async function ghTestAccess(cfg){
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
+  const repo = await ghApi(base);
+  if(!repo.permissions || !repo.permissions.push){
+    throw new Error('403 ce token peut lire le dépôt, mais ne peut pas y publier. Vérifie « Contents : Read and write ».');
+  }
+  return ghReadFile(cfg);
+}
+
+async function ghWriteFile(cfg, newContent, commitMessage){
+  const base = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
+  const ref = await ghApi(`${base}/git/ref/heads/${encodeURIComponent(cfg.branch)}`);
+  const parentSha = ref.object.sha;
+  const parentCommit = await ghApi(`${base}/git/commits/${parentSha}`);
+  const baseTreeSha = parentCommit.tree.sha;
+
+  const blob = await ghApi(`${base}/git/blobs`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({content: b64EncodeUnicode(newContent), encoding:'base64'})
+  });
+
+  const newTree = await ghApi(`${base}/git/trees`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({base_tree: baseTreeSha, tree:[{path:cfg.path, mode:'100644', type:'blob', sha:blob.sha}]})
+  });
+
+  const newCommit = await ghApi(`${base}/git/commits`, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({message: commitMessage, tree: newTree.sha, parents:[parentSha]})
+  });
+
+  await ghApi(`${base}/git/refs/heads/${encodeURIComponent(cfg.branch)}`, {
+    method:'PATCH', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({sha: newCommit.sha})
+  });
+}
+
+function setStatus(id, ok, text, spinner){
+  const el = $(id);
+  el.classList.toggle('ok', !!ok);
+  el.innerHTML = (spinner ? '<span class="spin" style="border-color:rgba(44,74,58,0.25); border-top-color:var(--green-deep);"></span>' : `<span class="dot"></span>`) + `<span>${text}</span>`;
+}
+
+/* ============ Une fois le site chargé (peu importe la méthode) ============ */
+function onSiteLoaded(){
+  hasPendingDelete = false;
+  hasPendingChanges = false;
+  resetArticleForm();
+  $('catalogCard').style.display = 'block';
+  $('newArticleCard').style.display = 'block';
+  $('actions').style.display = 'block';
+  $('btnPublish').style.display = githubConnected ? 'flex' : 'none';
+  parseCatalog();
+  renderCatalogList();
+  checkReady();
+}
+
+/* ============ Analyse du catalogue existant ============ */
+function extractPhotos(){
+  const map = {};
+  const re = /(\w+):\s*'(data:image\/[a-z]+;base64,[^']+)'/g;
+  let m;
+  while((m = re.exec(siteHtml))){ map[m[1]] = m[2]; }
+  return map;
+}
+
+function parseCatalog(){
+  catalogItems = [];
+  if(siteHtml.trim().startsWith('{')){
+    catalogData = JSON.parse(siteHtml);
+    ['femme','homme'].forEach(category => (catalogData[category] || []).forEach((item, index) => {
+      catalogItems.push({...item, category, index, photoSrc:item.photo || null});
+    }));
+    return;
+  }
+  catalogData = null;
+  const photos = extractPhotos();
+  const femmeStart = siteHtml.indexOf('femme: [');
+  const hommeStart = siteHtml.indexOf('homme: [', femmeStart);
+  const mesureStart = siteHtml.indexOf('mesure:', hommeStart);
+  if(femmeStart === -1 || hommeStart === -1) return;
+
+  const segments = [
+    {cat:'femme', from: femmeStart, to: hommeStart},
+    {cat:'homme', from: hommeStart, to: mesureStart === -1 ? siteHtml.length : mesureStart}
+  ];
+
+  const itemRe = /\{sub:'([^']*)',\s*name:'((?:[^'\\]|\\.)*)',\s*price:'([^']*)',\s*photo:'([^']*)'(?:,\s*badge:'([^']*)')?(?:,\s*desc:'((?:[^'\\]|\\.)*)')?(?:,\s*colors:(\[[^\]]*\]))?\s*\},?/g;
+
+  segments.forEach(seg => {
+    const chunk = siteHtml.slice(seg.from, seg.to);
+    itemRe.lastIndex = 0;
+    let m;
+    while((m = itemRe.exec(chunk))){
+      let colors = null;
+      if(m[7]){
+        try{ colors = JSON.parse(m[7].replace(/'/g,'"')); }catch(e){ colors = null; }
+      }
+      catalogItems.push({
+        category: seg.cat, sub: m[1], name: m[2].replace(/\\'/g,"'"),
+        price: m[3], photo: m[4], badge: m[5] || null,
+        desc: m[6] ? m[6].replace(/\\'/g,"'") : null, colors,
+        start: seg.from + m.index, end: seg.from + m.index + m[0].length,
+        photoSrc: photos[m[4]] || null
+      });
+    }
+  });
+}
+
+const SUBLABEL = {tenue:'Complet', haut:'Chemise', bas:'Bas'};
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderCatalogList(){
+  const list = $('catList');
+  const count = $('catCount');
+  if(catalogItems.length === 0){
+    list.innerHTML = '<div class="cat-empty">Aucun article détecté dans ce fichier.</div>';
+    count.textContent = '';
+    return;
+  }
+  const nF = catalogItems.filter(i=>i.category==='femme').length;
+  const nH = catalogItems.filter(i=>i.category==='homme').length;
+  const query = $('catalogSearch').value.trim().toLocaleLowerCase('fr');
+  const shown = catalogItems.map((it, idx) => ({it, idx})).filter(({it}) =>
+    (catalogFilter === 'tout' || it.category === catalogFilter) &&
+    (!query || [it.name, it.price, it.sub, it.badge, it.desc, ...(it.colors || [])].filter(Boolean).join(' ').toLocaleLowerCase('fr').includes(query))
+  );
+  count.textContent = `${catalogItems.length} article(s) — ${nF} femme, ${nH} homme${shown.length !== catalogItems.length ? ` · ${shown.length} affiché(s)` : ''}`;
+  list.innerHTML = shown.length ? shown.map(({it, idx}) => `
+    <div class="cat-item">
+      ${it.photoSrc ? `<img class="cat-thumb" src="${it.photoSrc}">` : `<div class="cat-thumb"></div>`}
+      <div class="cat-info">
+        <div class="cat-name">${escapeHtml(it.name)}</div>
+        <div class="cat-meta">
+          <span class="cat-tag ${it.category}">${it.category}</span>${SUBLABEL[it.sub]||it.sub} · ${it.price}${it.badge ? ' · '+escapeHtml(it.badge) : ''}${it.colors ? ' · '+it.colors.length+' coloris' : ''}
+        </div>
+        ${it.desc ? `<div class="cat-desc">${escapeHtml(it.desc)}</div>` : ''}
+      </div>
+      <div class="item-actions">
+        <button class="edit-small" onclick="editProduct(${idx})" type="button">Modifier</button>
+        <button class="danger-small" onclick="deleteProduct(${idx})" type="button">Supprimer</button>
+      </div>
+    </div>
+  `).join('') : '<div class="cat-empty">Aucun article ne correspond à cette recherche.</div>';
+}
+
+function deleteProduct(idx){
+  const item = catalogItems[idx];
+  if(!item) return;
+  if(!confirm(`Supprimer "${item.name}" du catalogue ?`)) return;
+  if(catalogData){
+    catalogData[item.category].splice(item.index, 1);
+    siteHtml = JSON.stringify(catalogData, null, 2) + '\n';
+    hasPendingDelete = true; hasPendingChanges = true;
+    parseCatalog(); renderCatalogList(); checkReady();
+    msg.className = 'msg info';
+    msg.textContent = `« ${item.name} » a été retiré. Publie les modifications quand tu es prêt.`;
+    return;
+  }
+  siteHtml = siteHtml.slice(0, item.start) + siteHtml.slice(item.end);
+  // Nettoie la photo si elle n'est plus utilisée par aucun autre article
+  const stillUsed = new RegExp("photo:'" + item.photo + "'").test(siteHtml);
+  if(!stillUsed){
+    siteHtml = siteHtml.replace(new RegExp("\\n\\s*" + item.photo + ":\\s*'data:image/[a-z]+;base64,[^']+',?"), '');
+  }
+  hasPendingDelete = true;
+  hasPendingChanges = true;
+  parseCatalog();
+  renderCatalogList();
+  checkReady();
+  msg.className = 'msg info';
+  msg.textContent = `"${item.name}" retiré du catalogue en mémoire. Clique sur "Publier" ou "Télécharger" ci-dessous pour appliquer le changement — inutile d'ajouter un nouvel article pour ça.`;
+}
+
+function editProduct(idx){
+  const item = catalogItems[idx];
+  if(!item) return;
+  editingIndex = idx;
+  photoDataUri = null;
+  $('name').value = item.name;
+  $('desc').value = item.desc || '';
+  $('price').value = String(item.price).replace(/[^0-9]/g, '');
+  $('category').value = item.category;
+  $('sub').value = item.sub;
+  $('badge').value = item.badge || '';
+  $('colors').value = (item.colors || []).join(', ');
+  $('photoFile').value = '';
+  if(item.photoSrc){
+    previewImg.src = item.photoSrc;
+    preview.style.display = 'block';
+    $('pcard-img').src = item.photoSrc;
+    $('pcard-img').style.display = 'block';
+    $('pcard-empty').style.display = 'none';
+  }
+  $('articleFormTitle').innerHTML = '<span class="n">3</span>Modifier l\'article';
+  $('btnSaveArticle').textContent = 'Enregistrer la modification';
+  $('btnCancelEdit').style.display = 'block';
+  updateLivePreview();
+  $('newArticleCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ============ Nouvel article : aperçu + validation ============ */
+function checkReady(){
+  const ready = !!siteHtml && (hasPendingChanges || hasPendingDelete);
+  $('btnPublish').disabled = !ready;
+  $('btnDownload').disabled = !ready;
+  const original = editingIndex !== null ? catalogItems[editingIndex] : null;
+  const formReady = !!($('name').value.trim() && $('price').value && (original || photoDataUri));
+  $('btnSaveArticle').disabled = !formReady;
+}
+
+function updateLivePreview(){
+  const name = $('name').value.trim();
+  const price = $('price').value;
+  const badge = $('badge').value.trim();
+  const sub = $('sub').value;
+  const desc = $('desc').value.trim();
+  const colorsRaw = $('colors').value.trim();
+
+  $('pcard-name').textContent = name || 'Nom de l\u2019article';
+  $('pcard-price').textContent = price ? formatPrice(price) : '— FCFA';
+  $('pcard-cat').textContent = SUBLABEL[sub] || sub;
+  if(badge){ $('pcard-badge').style.display='block'; $('pcard-badge').textContent = badge; }
+  else { $('pcard-badge').style.display='none'; }
+  if(desc){ $('pcard-desc').style.display='block'; $('pcard-desc').textContent = desc; }
+  else { $('pcard-desc').style.display='none'; }
+  if(colorsRaw){
+    $('pcard-colors').style.display='block';
+    $('pcard-colors').textContent = 'Existe aussi en : ' + colorsRaw;
+  } else { $('pcard-colors').style.display='none'; }
+}
+
+function formatPrice(price){
+  return Number(price).toLocaleString('fr-FR').replace(/\u202f/g,' ') + ' FCFA';
+}
+
+['name','price','badge','sub','colors','desc'].forEach(id => {
+  $(id).addEventListener('input', () => { updateLivePreview(); checkReady(); });
+});
+
+$('photoFile').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img.onload = () => {
+      const targetWidth = 640;
+      const scale = Math.min(1, targetWidth / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      photoDataUri = canvas.toDataURL('image/jpeg', 0.78);
+      previewImg.src = photoDataUri;
+      preview.style.display = 'block';
+      $('pcard-empty').style.display = 'none';
+      $('pcard-img').style.display = 'block';
+      $('pcard-img').src = photoDataUri;
+      checkReady();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+const preview = $('preview');
+const previewImg = $('previewImg');
+
+/* ============ Ajout et modification des articles ============ */
+function productLine(photoKey){
+  const name = $('name').value.trim().replace(/'/g, "\\'");
+  const badge = $('badge').value.trim().replace(/'/g, "\\'");
+  const desc = $('desc').value.trim().replace(/'/g, "\\'");
+  const colors = $('colors').value.trim().split(',').map(c=>c.trim()).filter(Boolean).map(c=>c.replace(/'/g,"\\'"));
+  let line = `{sub:'${$('sub').value}', name:'${name}', price:'${formatPrice($('price').value)}', photo:'${photoKey}'`;
+  if(badge) line += `, badge:'${badge}'`;
+  if(desc) line += `, desc:'${desc}'`;
+  if(colors.length) line += `, colors:[${colors.map(c=>`'${c}'`).join(',')}]`;
+  return line + '},';
+}
+
+function addPhotoToHtml(html, key, image){
+  const anchor = 'const PHOTOS = {';
+  const index = html.indexOf(anchor);
+  if(index === -1) throw new Error('Structure PHOTOS introuvable');
+  const point = index + anchor.length;
+  return html.slice(0, point) + `\n  ${key}: '${image}',` + html.slice(point);
+}
+
+function saveArticle(){
+  const name = $('name').value.trim();
+  const item = editingIndex !== null ? catalogItems[editingIndex] : null;
+  if(!name || !$('price').value || (!item && !photoDataUri)) return;
+  try{
+    if(catalogData){
+      const record = {
+        sub:$('sub').value, name, price:formatPrice($('price').value),
+        photo: photoDataUri || item?.photo || '',
+        ...( $('badge').value.trim() ? {badge:$('badge').value.trim()} : {}),
+        ...( $('desc').value.trim() ? {desc:$('desc').value.trim()} : {}),
+        ...( $('colors').value.trim() ? {colors:$('colors').value.split(',').map(c=>c.trim()).filter(Boolean)} : {})
+      };
+      if(item){
+        catalogData[item.category].splice(item.index, 1);
+      }
+      (catalogData[$('category').value] ||= []).unshift(record);
+      siteHtml = JSON.stringify(catalogData, null, 2) + '\n';
+      hasPendingChanges = true;
+      parseCatalog(); renderCatalogList(); resetArticleForm(); checkReady();
+      msg.className = 'msg info'; msg.textContent = `« ${name} » a été enregistré. Publie les modifications quand tu es prêt.`;
+      return;
+    }
+    if(item){
+      const photoKey = photoDataUri ? 'photo_' + Date.now() : item.photo;
+      const line = productLine(photoKey);
+      if($('category').value === item.category){
+        siteHtml = siteHtml.slice(0, item.start) + line + siteHtml.slice(item.end);
+      }else{
+        siteHtml = siteHtml.slice(0, item.start) + siteHtml.slice(item.end);
+        const anchor = $('category').value + ': [';
+        const index = siteHtml.indexOf(anchor);
+        if(index === -1) throw new Error('Collection introuvable');
+        const point = index + anchor.length;
+        siteHtml = siteHtml.slice(0, point) + '\n    ' + line + siteHtml.slice(point);
+      }
+      if(photoDataUri){
+        siteHtml = addPhotoToHtml(siteHtml, photoKey, photoDataUri);
+        const stillUsed = new RegExp("photo:'" + item.photo + "'").test(siteHtml);
+        if(!stillUsed) siteHtml = siteHtml.replace(new RegExp("\\n\\s*" + item.photo + ":\\s*'data:image/[a-z]+;base64,[^']+',?"), '');
+      }
+      msg.className = 'msg info';
+      msg.textContent = `« ${name} » a été modifié. Publie les modifications quand tu es prêt.`;
+    }else{
+      const photoKey = 'photo_' + Date.now();
+      siteHtml = addPhotoToHtml(siteHtml, photoKey, photoDataUri);
+      const anchor = $('category').value + ': [';
+      const index = siteHtml.indexOf(anchor);
+      if(index === -1) throw new Error('Collection introuvable');
+      const point = index + anchor.length;
+      siteHtml = siteHtml.slice(0, point) + '\n    ' + productLine(photoKey) + siteHtml.slice(point);
+      msg.className = 'msg info';
+      msg.textContent = `« ${name} » a été ajouté. Publie les modifications quand tu es prêt.`;
+    }
+    hasPendingChanges = true;
+    parseCatalog();
+    renderCatalogList();
+    resetArticleForm();
+    checkReady();
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = 'Erreur : ' + err.message;
+  }
+}
+
+function buildUpdatedHtml(){
+  return {updated: siteHtml, name: null};
+}
+
+function resetArticleForm(){
+  editingIndex = null;
+  $('name').value = '';
+  $('desc').value = '';
+  $('price').value = '';
+  $('badge').value = '';
+  $('colors').value = '';
+  $('photoFile').value = '';
+  photoDataUri = null;
+  preview.style.display = 'none';
+  $('pcard-empty').style.display = 'flex';
+  $('pcard-img').style.display = 'none';
+  $('articleFormTitle').innerHTML = '<span class="n">3</span>Nouvel article';
+  $('btnSaveArticle').textContent = 'Ajouter au catalogue';
+  $('btnCancelEdit').style.display = 'none';
+  updateLivePreview();
+  checkReady();
+}
+
+/* ============ Télécharger ============ */
+$('btnDownload').addEventListener('click', () => {
+  try{
+    const {updated, name} = buildUpdatedHtml();
+    const blob = new Blob([updated], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = siteFileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    siteHtml = updated;
+    hasPendingDelete = false;
+    hasPendingChanges = false;
+    msg.className = 'msg ok';
+    msg.textContent = name
+      ? `✓ "${name}" ajouté ! Fichier téléchargé (${siteFileName}). Remplace « index.html » dans ton dépôt GitHub pour publier la modification.`
+      : `✓ Catalogue mis à jour (suppression appliquée). Fichier téléchargé (${siteFileName}). Remplace « index.html » dans ton dépôt GitHub pour publier la modification.`;
+    parseCatalog(); renderCatalogList(); resetArticleForm();
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = "Erreur : " + err.message;
+  }
+});
+
+/* ============ Publier sur GitHub Pages ============ */
+$('btnPublish').addEventListener('click', async () => {
+  const btn = $('btnPublish');
+  try{
+    const {updated, name} = buildUpdatedHtml();
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin"></span><span>Publication en cours…</span>';
+    await ghWriteFile(ghCfg, updated, name ? ('Ajout article : ' + name) : 'Mise à jour du catalogue (suppression d\'article)');
+    siteHtml = updated;
+    hasPendingDelete = false;
+    hasPendingChanges = false;
+    msg.className = 'msg ok';
+    msg.textContent = name
+      ? `✓ "${name}" publié sur GitHub. GitHub Pages mettra le site à jour automatiquement dans quelques minutes.`
+      : `✓ Suppression publiée sur GitHub. GitHub Pages mettra le site à jour automatiquement dans quelques minutes.`;
+    parseCatalog(); renderCatalogList(); resetArticleForm();
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = "Erreur lors de la publication : " + ghErrorMessage(err);
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = 'Publier sur GitHub Pages';
+  }
+});
+
+updateLivePreview();
+</script>
+</body>
+</html>

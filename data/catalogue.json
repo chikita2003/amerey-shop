@@ -1,0 +1,192 @@
+{
+  "femme": [
+    {
+      "sub": "tenue",
+      "name": "Robe brodée blanche à manches bouffantes",
+      "price": "40 000 FCFA",
+      "photo": "assets/images/products/femme_broderie.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "tenue",
+      "name": "Ensemble rayé chemise & pantalon large",
+      "price": "40 000 FCFA",
+      "photo": "assets/images/products/femme_raye_orange.jpg"
+    },
+    {
+      "sub": "tenue",
+      "name": "Robe SANDROM",
+      "price": "45 000 FCFA",
+      "photo": "assets/images/products/robe_sandrom_brun.jpg",
+      "badge": "Premium",
+      "colors": [
+        "Marron",
+        "Beige"
+      ]
+    },
+    {
+      "sub": "tenue",
+      "name": "Boubou Amerey",
+      "price": "45 000 FCFA",
+      "photo": "assets/images/products/boubou_amerey_rose.jpg",
+      "badge": "Premium",
+      "colors": [
+        "Rose",
+        "Gris",
+        "Beige"
+      ]
+    },
+    {
+      "sub": "tenue",
+      "name": "Ensemble dame chic",
+      "price": "40 000 FCFA",
+      "photo": "assets/images/products/dame_chic_rose.jpg",
+      "badge": "Premium",
+      "colors": [
+        "Rose",
+        "Vert sauge",
+        "Marron"
+      ]
+    },
+    {
+      "sub": "tenue",
+      "name": "Complet Amerey",
+      "price": "45 000 FCFA",
+      "photo": "assets/images/products/complet_amerey_gris.jpg",
+      "badge": "Premium",
+      "colors": [
+        "Gris",
+        "Bleu"
+      ]
+    }
+  ],
+  "homme": [
+    {
+      "sub": "tenue",
+      "name": "Ensemble boubou rayé écru",
+      "price": "65 000 FCFA",
+      "photo": "assets/images/products/homme_kaftan_raye.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "tenue",
+      "name": "Ensemble homme lin moutarde",
+      "price": "65 000 FCFA",
+      "photo": "assets/images/products/homme_ens_orange.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "tenue",
+      "name": "Ensemble homme lin écru",
+      "price": "65 000 FCFA",
+      "photo": "assets/images/products/homme_ens_creme.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "tenue",
+      "name": "Ensemble good look lilas",
+      "price": "65 000 FCFA",
+      "photo": "assets/images/products/homme_good_look_lilas.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise col mao texturée beige",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/homme_beige_art.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise col mao plissée beige",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_beige.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise colorblock liseré moutarde",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_navy_stripe.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise blanche à liseré tissé",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_white_panel.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise rayée bleu marine à poches",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_blue_stripe.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise plissée col mao marine",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_navy_pintuck.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise blanche col rayé",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_white_collar.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise courte rayée bicolore",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/shirt_white_short.jpg"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme rayures multicolores",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_navy_rayures.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme - Corail",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_corail.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme vert clair",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_vert_clair.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme grise rayée",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_grise_rayee.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme - Olive",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_olive_plissee.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme citron avec broche",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_citron_broche.jpg",
+      "badge": "Premium"
+    },
+    {
+      "sub": "haut",
+      "name": "Chemise homme - blanc rayé",
+      "price": "30 000 FCFA",
+      "photo": "assets/images/products/chemise_blanc_raye.jpg",
+      "badge": "Premium"
+    }
+  ],
+  "mesure": []
+}
