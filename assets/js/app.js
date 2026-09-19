@@ -756,7 +756,9 @@ document.addEventListener('click', (e)=>{
     }
   }
 });
-fetch('data/catalogue.json')
+ffetch(`data/catalogue.json?v=${Date.now()}`, {
+  cache: 'no-store'
+})
   .then(response => {
     if(!response.ok) throw new Error('Catalogue indisponible');
     return response.json();
