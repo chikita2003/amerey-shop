@@ -2,6 +2,17 @@
   "femme": [
     {
       "sub": "tenue",
+      "name": "Robe SANDROMe",
+      "price": "45 000 FCFA",
+      "photo": "assets/images/products/robe_sandrom_brun.jpg",
+      "badge": "Premium",
+      "colors": [
+        "Marron",
+        "Beige"
+      ]
+    },
+    {
+      "sub": "tenue",
       "name": "Robe brodée blanche à manches bouffantes",
       "price": "40 000 FCFA",
       "photo": "assets/images/products/femme_broderie.jpg",
@@ -12,17 +23,6 @@
       "name": "Ensemble rayé chemise & pantalon large",
       "price": "40 000 FCFA",
       "photo": "assets/images/products/femme_raye_orange.jpg"
-    },
-    {
-      "sub": "tenue",
-      "name": "Robe SANDROM",
-      "price": "45 000 FCFA",
-      "photo": "assets/images/products/robe_sandrom_brun.jpg",
-      "badge": "Premium",
-      "colors": [
-        "Marron",
-        "Beige"
-      ]
     },
     {
       "sub": "tenue",
