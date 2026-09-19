@@ -756,7 +756,7 @@ document.addEventListener('click', (e)=>{
     }
   }
 });
-ffetch(`data/catalogue.json?v=${Date.now()}`, {
+fetch(`data/catalogue.json?v=${Date.now()}`, {
   cache: 'no-store'
 })
   .then(response => {
