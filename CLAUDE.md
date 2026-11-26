@@ -33,7 +33,8 @@ Boutique en ligne statique **AMEREY SHOP** (prêt-à-porter homme & femme + sur-
 - Champs obligatoires : `sub`, `name`, `price`, `photo`. Optionnels : `badge`, `desc`, `colors`.
 - `sub` ∈ clés de `SUBLABELS` (`tenue`, `haut`, `bas`, …).
 - Prix au format texte `"45 000 FCFA"` (espace comme séparateur de milliers).
-- Attention : un article ajouté via `admin.html` stocke sa photo en **data URI base64** dans `photo` (pas de fichier image séparé) — cela fait grossir le JSON.
+- `photo` est toujours un **chemin de fichier** (`assets/images/products/…jpg`), jamais une image base64 dans le JSON.
+- `admin.html` compresse les nouvelles photos dans le navigateur (JPEG, 960 px de large max) et publie en **un seul commit** : le JSON, les nouvelles photos (`pendingImages`) et la suppression des photos du dossier produits qui ne sont plus utilisées par aucun article (`orphanPhotos`). Ne jamais référencer une photo produit ailleurs que dans le catalogue, sinon elle risque d'être supprimée.
 
 ## Développer / tester
 
