@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
 <title>AMEREY SHOP — Gestionnaire de catalogue</title>
 <link href="https://fonts.googleapis.com/css2?family=Prata&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -201,8 +202,8 @@
     </div>
 
     <div id="manualSection" style="display:none; margin-top:18px; border-top:1px solid var(--line); padding-top:18px;">
-      <label>Fichier .html du site</label>
-      <input type="file" id="siteFile" accept=".html">
+      <label>Fichier catalogue.json</label>
+      <input type="file" id="siteFile" accept=".json,application/json">
       <div class="status-line" id="manualStatus"><span class="dot"></span><span>Aucun fichier chargé</span></div>
     </div>
   </div>
@@ -306,14 +307,14 @@
 
 <script>
 /* ============ ÉTAT ============ */
-let siteHtml = null;
+let catalogText = null;
 let siteFileName = 'catalogue.json';
 let photoDataUri = null;
 let githubConnected = false;
 let ghCfg = {owner:'', repo:'', branch:'main', path:'data/catalogue.json', token:''};
 let catalogData = null;
-let hasPendingDelete = false;
-let catalogItems = []; // {category, sub, name, price, photo, badge, colors, start, end}
+let pendingLog = []; // résumé des modifications non publiées (message de commit)
+let catalogItems = []; // {category, index, sub, name, price, photo, badge, desc, colors, photoSrc}
 let catalogFilter = 'tout';
 let editingIndex = null;
 let hasPendingChanges = false;
@@ -383,11 +384,11 @@ $('siteFile').addEventListener('change', (e) => {
   const reader = new FileReader();
   reader.onload = (ev) => {
     const content = ev.target.result;
-    if (!content.trim().startsWith('{') && (!content.includes('const PHOTOS = {') || !content.includes('const PRODUCTS = {'))) {
-      setStatus('manualStatus', false, "⚠️ Ce fichier ne ressemble pas au bon fichier de site.");
+    if (!isValidCatalog(content)) {
+      setStatus('manualStatus', false, "⚠️ Ce fichier n'est pas un catalogue valide (data/catalogue.json attendu).");
       return;
     }
-    siteHtml = content;
+    catalogText = content;
     githubConnected = false;
     connectionTested = true;
     setStatus('manualStatus', true, "✓ Fichier chargé : " + file.name);
@@ -416,7 +417,8 @@ $('btnLoadGithub').addEventListener('click', async () => {
   setStatus('githubStatus', null, "Connexion à GitHub en cours…", true);
   try{
     const content = await ghTestAccess(ghCfg);
-    siteHtml = content;
+    if(!isValidCatalog(content)) throw new Error(`Le fichier « ${path} » n'est pas un catalogue JSON valide.`);
+    catalogText = content;
     siteFileName = path.split('/').pop();
     githubConnected = true;
     connectionTested = true;
@@ -431,7 +433,7 @@ $('btnLoadGithub').addEventListener('click', async () => {
 });
 
 $('btnOpenCatalog').addEventListener('click', () => {
-  if(!connectionTested || !siteHtml) return;
+  if(!connectionTested || !catalogText) return;
   onSiteLoaded();
   $('stepsBox').style.display = 'none';
   $('catalogCard').scrollIntoView({behavior:'smooth', block:'start'});
@@ -524,7 +526,7 @@ function setStatus(id, ok, text, spinner){
 
 /* ============ Une fois le site chargé (peu importe la méthode) ============ */
 function onSiteLoaded(){
-  hasPendingDelete = false;
+  pendingLog = [];
   hasPendingChanges = false;
   resetArticleForm();
   $('catalogCard').style.display = 'block';
@@ -537,55 +539,29 @@ function onSiteLoaded(){
 }
 
 /* ============ Analyse du catalogue existant ============ */
-function extractPhotos(){
-  const map = {};
-  const re = /(\w+):\s*'(data:image\/[a-z]+;base64,[^']+)'/g;
-  let m;
-  while((m = re.exec(siteHtml))){ map[m[1]] = m[2]; }
-  return map;
+function isValidCatalog(text){
+  try{
+    const data = JSON.parse(text);
+    return !!data && typeof data === 'object' && Array.isArray(data.femme) && Array.isArray(data.homme);
+  }catch(e){ return false; }
 }
 
 function parseCatalog(){
+  catalogData = JSON.parse(catalogText);
   catalogItems = [];
-  if(siteHtml.trim().startsWith('{')){
-    catalogData = JSON.parse(siteHtml);
-    ['femme','homme'].forEach(category => (catalogData[category] || []).forEach((item, index) => {
-      catalogItems.push({...item, category, index, photoSrc:item.photo || null});
-    }));
-    return;
-  }
-  catalogData = null;
-  const photos = extractPhotos();
-  const femmeStart = siteHtml.indexOf('femme: [');
-  const hommeStart = siteHtml.indexOf('homme: [', femmeStart);
-  const mesureStart = siteHtml.indexOf('mesure:', hommeStart);
-  if(femmeStart === -1 || hommeStart === -1) return;
+  ['femme','homme'].forEach(category => (catalogData[category] || []).forEach((item, index) => {
+    catalogItems.push({...item, category, index, photoSrc:item.photo || null});
+  }));
+}
 
-  const segments = [
-    {cat:'femme', from: femmeStart, to: hommeStart},
-    {cat:'homme', from: hommeStart, to: mesureStart === -1 ? siteHtml.length : mesureStart}
-  ];
+function serializeCatalog(){
+  catalogText = JSON.stringify(catalogData, null, 2) + '\n';
+}
 
-  const itemRe = /\{sub:'([^']*)',\s*name:'((?:[^'\\]|\\.)*)',\s*price:'([^']*)',\s*photo:'([^']*)'(?:,\s*badge:'([^']*)')?(?:,\s*desc:'((?:[^'\\]|\\.)*)')?(?:,\s*colors:(\[[^\]]*\]))?\s*\},?/g;
-
-  segments.forEach(seg => {
-    const chunk = siteHtml.slice(seg.from, seg.to);
-    itemRe.lastIndex = 0;
-    let m;
-    while((m = itemRe.exec(chunk))){
-      let colors = null;
-      if(m[7]){
-        try{ colors = JSON.parse(m[7].replace(/'/g,'"')); }catch(e){ colors = null; }
-      }
-      catalogItems.push({
-        category: seg.cat, sub: m[1], name: m[2].replace(/\\'/g,"'"),
-        price: m[3], photo: m[4], badge: m[5] || null,
-        desc: m[6] ? m[6].replace(/\\'/g,"'") : null, colors,
-        start: seg.from + m.index, end: seg.from + m.index + m[0].length,
-        photoSrc: photos[m[4]] || null
-      });
-    }
-  });
+function commitMessage(){
+  if(pendingLog.length === 0) return 'Mise à jour du catalogue';
+  if(pendingLog.length === 1) return pendingLog[0];
+  return `Mise à jour du catalogue (${pendingLog.length} modifications)\n\n` + pendingLog.map(l => '- ' + l).join('\n');
 }
 
 const SUBLABEL = {tenue:'Complet', haut:'Chemise', bas:'Bas'};
@@ -612,11 +588,11 @@ function renderCatalogList(){
   count.textContent = `${catalogItems.length} article(s) — ${nF} femme, ${nH} homme${shown.length !== catalogItems.length ? ` · ${shown.length} affiché(s)` : ''}`;
   list.innerHTML = shown.length ? shown.map(({it, idx}) => `
     <div class="cat-item">
-      ${it.photoSrc ? `<img class="cat-thumb" src="${it.photoSrc}">` : `<div class="cat-thumb"></div>`}
+      ${it.photoSrc ? `<img class="cat-thumb" src="${escapeHtml(it.photoSrc)}" alt="">` : `<div class="cat-thumb"></div>`}
       <div class="cat-info">
         <div class="cat-name">${escapeHtml(it.name)}</div>
         <div class="cat-meta">
-          <span class="cat-tag ${it.category}">${it.category}</span>${SUBLABEL[it.sub]||it.sub} · ${it.price}${it.badge ? ' · '+escapeHtml(it.badge) : ''}${it.colors ? ' · '+it.colors.length+' coloris' : ''}
+          <span class="cat-tag ${escapeHtml(it.category)}">${escapeHtml(it.category)}</span>${escapeHtml(SUBLABEL[it.sub]||it.sub)} · ${escapeHtml(it.price)}${it.badge ? ' · '+escapeHtml(it.badge) : ''}${it.colors ? ' · '+it.colors.length+' coloris' : ''}
         </div>
         ${it.desc ? `<div class="cat-desc">${escapeHtml(it.desc)}</div>` : ''}
       </div>
@@ -632,28 +608,13 @@ function deleteProduct(idx){
   const item = catalogItems[idx];
   if(!item) return;
   if(!confirm(`Supprimer "${item.name}" du catalogue ?`)) return;
-  if(catalogData){
-    catalogData[item.category].splice(item.index, 1);
-    siteHtml = JSON.stringify(catalogData, null, 2) + '\n';
-    hasPendingDelete = true; hasPendingChanges = true;
-    parseCatalog(); renderCatalogList(); checkReady();
-    msg.className = 'msg info';
-    msg.textContent = `« ${item.name} » a été retiré. Publie les modifications quand tu es prêt.`;
-    return;
-  }
-  siteHtml = siteHtml.slice(0, item.start) + siteHtml.slice(item.end);
-  // Nettoie la photo si elle n'est plus utilisée par aucun autre article
-  const stillUsed = new RegExp("photo:'" + item.photo + "'").test(siteHtml);
-  if(!stillUsed){
-    siteHtml = siteHtml.replace(new RegExp("\\n\\s*" + item.photo + ":\\s*'data:image/[a-z]+;base64,[^']+',?"), '');
-  }
-  hasPendingDelete = true;
+  catalogData[item.category].splice(item.index, 1);
+  serializeCatalog();
+  pendingLog.push(`Suppression article : ${item.name}`);
   hasPendingChanges = true;
-  parseCatalog();
-  renderCatalogList();
-  checkReady();
+  parseCatalog(); renderCatalogList(); checkReady();
   msg.className = 'msg info';
-  msg.textContent = `"${item.name}" retiré du catalogue en mémoire. Clique sur "Publier" ou "Télécharger" ci-dessous pour appliquer le changement — inutile d'ajouter un nouvel article pour ça.`;
+  msg.textContent = `« ${item.name} » a été retiré. Publie les modifications quand tu es prêt.`;
 }
 
 function editProduct(idx){
@@ -685,7 +646,7 @@ function editProduct(idx){
 
 /* ============ Nouvel article : aperçu + validation ============ */
 function checkReady(){
-  const ready = !!siteHtml && (hasPendingChanges || hasPendingDelete);
+  const ready = !!catalogText && hasPendingChanges;
   $('btnPublish').disabled = !ready;
   $('btnDownload').disabled = !ready;
   const original = editingIndex !== null ? catalogItems[editingIndex] : null;
@@ -753,93 +714,32 @@ const preview = $('preview');
 const previewImg = $('previewImg');
 
 /* ============ Ajout et modification des articles ============ */
-function productLine(photoKey){
-  const name = $('name').value.trim().replace(/'/g, "\\'");
-  const badge = $('badge').value.trim().replace(/'/g, "\\'");
-  const desc = $('desc').value.trim().replace(/'/g, "\\'");
-  const colors = $('colors').value.trim().split(',').map(c=>c.trim()).filter(Boolean).map(c=>c.replace(/'/g,"\\'"));
-  let line = `{sub:'${$('sub').value}', name:'${name}', price:'${formatPrice($('price').value)}', photo:'${photoKey}'`;
-  if(badge) line += `, badge:'${badge}'`;
-  if(desc) line += `, desc:'${desc}'`;
-  if(colors.length) line += `, colors:[${colors.map(c=>`'${c}'`).join(',')}]`;
-  return line + '},';
-}
-
-function addPhotoToHtml(html, key, image){
-  const anchor = 'const PHOTOS = {';
-  const index = html.indexOf(anchor);
-  if(index === -1) throw new Error('Structure PHOTOS introuvable');
-  const point = index + anchor.length;
-  return html.slice(0, point) + `\n  ${key}: '${image}',` + html.slice(point);
-}
-
 function saveArticle(){
   const name = $('name').value.trim();
   const item = editingIndex !== null ? catalogItems[editingIndex] : null;
   if(!name || !$('price').value || (!item && !photoDataUri)) return;
   try{
-    if(catalogData){
-      const record = {
-        sub:$('sub').value, name, price:formatPrice($('price').value),
-        photo: photoDataUri || item?.photo || '',
-        ...( $('badge').value.trim() ? {badge:$('badge').value.trim()} : {}),
-        ...( $('desc').value.trim() ? {desc:$('desc').value.trim()} : {}),
-        ...( $('colors').value.trim() ? {colors:$('colors').value.split(',').map(c=>c.trim()).filter(Boolean)} : {})
-      };
-      if(item){
-        catalogData[item.category].splice(item.index, 1);
-      }
-      (catalogData[$('category').value] ||= []).unshift(record);
-      siteHtml = JSON.stringify(catalogData, null, 2) + '\n';
-      hasPendingChanges = true;
-      parseCatalog(); renderCatalogList(); resetArticleForm(); checkReady();
-      msg.className = 'msg info'; msg.textContent = `« ${name} » a été enregistré. Publie les modifications quand tu es prêt.`;
-      return;
-    }
+    const record = {
+      sub:$('sub').value, name, price:formatPrice($('price').value),
+      photo: photoDataUri || item?.photo || '',
+      ...( $('badge').value.trim() ? {badge:$('badge').value.trim()} : {}),
+      ...( $('desc').value.trim() ? {desc:$('desc').value.trim()} : {}),
+      ...( $('colors').value.trim() ? {colors:$('colors').value.split(',').map(c=>c.trim()).filter(Boolean)} : {})
+    };
     if(item){
-      const photoKey = photoDataUri ? 'photo_' + Date.now() : item.photo;
-      const line = productLine(photoKey);
-      if($('category').value === item.category){
-        siteHtml = siteHtml.slice(0, item.start) + line + siteHtml.slice(item.end);
-      }else{
-        siteHtml = siteHtml.slice(0, item.start) + siteHtml.slice(item.end);
-        const anchor = $('category').value + ': [';
-        const index = siteHtml.indexOf(anchor);
-        if(index === -1) throw new Error('Collection introuvable');
-        const point = index + anchor.length;
-        siteHtml = siteHtml.slice(0, point) + '\n    ' + line + siteHtml.slice(point);
-      }
-      if(photoDataUri){
-        siteHtml = addPhotoToHtml(siteHtml, photoKey, photoDataUri);
-        const stillUsed = new RegExp("photo:'" + item.photo + "'").test(siteHtml);
-        if(!stillUsed) siteHtml = siteHtml.replace(new RegExp("\\n\\s*" + item.photo + ":\\s*'data:image/[a-z]+;base64,[^']+',?"), '');
-      }
-      msg.className = 'msg info';
-      msg.textContent = `« ${name} » a été modifié. Publie les modifications quand tu es prêt.`;
-    }else{
-      const photoKey = 'photo_' + Date.now();
-      siteHtml = addPhotoToHtml(siteHtml, photoKey, photoDataUri);
-      const anchor = $('category').value + ': [';
-      const index = siteHtml.indexOf(anchor);
-      if(index === -1) throw new Error('Collection introuvable');
-      const point = index + anchor.length;
-      siteHtml = siteHtml.slice(0, point) + '\n    ' + productLine(photoKey) + siteHtml.slice(point);
-      msg.className = 'msg info';
-      msg.textContent = `« ${name} » a été ajouté. Publie les modifications quand tu es prêt.`;
+      catalogData[item.category].splice(item.index, 1);
     }
+    (catalogData[$('category').value] ||= []).unshift(record);
+    serializeCatalog();
+    pendingLog.push(item ? `Modification article : ${name}` : `Ajout article : ${name}`);
     hasPendingChanges = true;
-    parseCatalog();
-    renderCatalogList();
-    resetArticleForm();
-    checkReady();
+    parseCatalog(); renderCatalogList(); resetArticleForm(); checkReady();
+    msg.className = 'msg info';
+    msg.textContent = `« ${name} » a été ${item ? 'modifié' : 'ajouté'}. Publie les modifications quand tu es prêt.`;
   }catch(err){
     msg.className = 'msg err';
     msg.textContent = 'Erreur : ' + err.message;
   }
-}
-
-function buildUpdatedHtml(){
-  return {updated: siteHtml, name: null};
 }
 
 function resetArticleForm(){
@@ -864,21 +764,17 @@ function resetArticleForm(){
 /* ============ Télécharger ============ */
 $('btnDownload').addEventListener('click', () => {
   try{
-    const {updated, name} = buildUpdatedHtml();
-    const blob = new Blob([updated], { type: 'text/html' });
+    const blob = new Blob([catalogText], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = siteFileName;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    siteHtml = updated;
-    hasPendingDelete = false;
+    pendingLog = [];
     hasPendingChanges = false;
     msg.className = 'msg ok';
-    msg.textContent = name
-      ? `✓ "${name}" ajouté ! Fichier téléchargé (${siteFileName}). Remplace « index.html » dans ton dépôt GitHub pour publier la modification.`
-      : `✓ Catalogue mis à jour (suppression appliquée). Fichier téléchargé (${siteFileName}). Remplace « index.html » dans ton dépôt GitHub pour publier la modification.`;
+    msg.textContent = `✓ Catalogue mis à jour. Fichier téléchargé (${siteFileName}). Remplace « data/catalogue.json » dans ton dépôt GitHub pour publier la modification.`;
     parseCatalog(); renderCatalogList(); resetArticleForm();
   }catch(err){
     msg.className = 'msg err';
@@ -890,17 +786,13 @@ $('btnDownload').addEventListener('click', () => {
 $('btnPublish').addEventListener('click', async () => {
   const btn = $('btnPublish');
   try{
-    const {updated, name} = buildUpdatedHtml();
     btn.disabled = true;
     btn.innerHTML = '<span class="spin"></span><span>Publication en cours…</span>';
-    await ghWriteFile(ghCfg, updated, name ? ('Ajout article : ' + name) : 'Mise à jour du catalogue (suppression d\'article)');
-    siteHtml = updated;
-    hasPendingDelete = false;
+    await ghWriteFile(ghCfg, catalogText, commitMessage());
+    pendingLog = [];
     hasPendingChanges = false;
     msg.className = 'msg ok';
-    msg.textContent = name
-      ? `✓ "${name}" publié sur GitHub. GitHub Pages mettra le site à jour automatiquement dans quelques minutes.`
-      : `✓ Suppression publiée sur GitHub. GitHub Pages mettra le site à jour automatiquement dans quelques minutes.`;
+    msg.textContent = `✓ Modifications publiées sur GitHub. Le site sera mis à jour automatiquement dans quelques minutes.`;
     parseCatalog(); renderCatalogList(); resetArticleForm();
   }catch(err){
     msg.className = 'msg err';

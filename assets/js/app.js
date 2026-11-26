@@ -8,6 +8,11 @@ function applySectionVisibility(){
 }
 let currentSub = 'tout';
 
+// Échappe les caractères spéciaux avant insertion dans du HTML (texte ou attribut)
+function escapeHtml(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 function waLink(text){
   return 'https://wa.me/22956990915?text=' + encodeURIComponent(text);
 }
@@ -18,7 +23,7 @@ function renderSubfilters(){
   if(subs.length === 0){ el.innerHTML=''; return; }
   let html = `<button class="chip ${currentSub==='tout'?'active':''}" data-sub="tout">Tout</button>`;
   subs.forEach(s=>{
-    html += `<button class="chip ${currentSub===s?'active':''}" data-sub="${s}">${SUBLABELS[s]||s}</button>`;
+    html += `<button class="chip ${currentSub===s?'active':''}" data-sub="${escapeHtml(s)}">${escapeHtml(SUBLABELS[s]||s)}</button>`;
   });
   el.innerHTML = html;
   el.querySelectorAll('.chip').forEach(btn=>{
@@ -48,26 +53,28 @@ function renderGrid(){
   if(currentSub !== 'tout') items = items.filter(p=>p.sub===currentSub);
 
   if(items.length === 0){
-    grid.innerHTML = `<div class="empty-note">Cette catégorie arrive bientôt. <a href="${waLink('Bonjour AMEREY SHOP, je souhaite être informé(e) quand la collection ' + currentCat + ' sera disponible.')}" style="color:var(--clay); text-decoration:underline;">Être averti sur WhatsApp</a></div>`;
+    grid.innerHTML = `<div class="empty-note">Cette catégorie arrive bientôt. <a href="${escapeHtml(waLink('Bonjour AMEREY SHOP, je souhaite être informé(e) quand la collection ' + currentCat + ' sera disponible.'))}" style="color:var(--clay); text-decoration:underline;">Être averti sur WhatsApp</a></div>`;
     return;
   }
 
   grid.innerHTML = items.map(p=>{
     const msg = `Bonjour AMEREY SHOP, je souhaite commander : ${p.name} (${p.price}). Merci de me confirmer la disponibilité et les modalités de livraison.`;
     const hasPhoto = !!p.photo;
+    const photo = escapeHtml(p.photo);
+    const name = escapeHtml(p.name);
     const photoHtml = hasPhoto
-      ? `<img src="${p.photo}" alt="${p.name}" loading="lazy">`
+      ? `<img src="${photo}" alt="${name}" loading="lazy">`
       : `Photo produit à ajouter`;
     return `
     <div class="card">
-      <div class="card-photo"${hasPhoto?` data-lightbox="${p.photo}" data-name="${p.name.replace(/"/g,'&quot;')}"`:''}>${photoHtml}${hasPhoto?'<span class="zoom-icon">⤢</span>':''}</div>
-      ${p.badge?`<span class="card-badge">${p.badge}</span>`:''}
-      <span class="card-price-tag">${p.price}</span>
+      <div class="card-photo"${hasPhoto?` data-lightbox="${photo}" data-name="${name}"`:''}>${photoHtml}${hasPhoto?'<span class="zoom-icon">⤢</span>':''}</div>
+      ${p.badge?`<span class="card-badge">${escapeHtml(p.badge)}</span>`:''}
+      <span class="card-price-tag">${escapeHtml(p.price)}</span>
       <div class="card-body">
-        <span class="card-cat">${SUBLABELS[p.sub]||''}</span>
-        <div class="card-name">${p.name}</div>
-        ${p.colors ? `<div class="card-colors">Existe aussi en : ${p.colors.join(', ')}</div>` : ''}
-        <a class="card-cta" href="${waLink(msg)}" target="_blank">Commander →</a>
+        <span class="card-cat">${escapeHtml(SUBLABELS[p.sub]||'')}</span>
+        <div class="card-name">${name}</div>
+        ${Array.isArray(p.colors) && p.colors.length ? `<div class="card-colors">Existe aussi en : ${escapeHtml(p.colors.join(', '))}</div>` : ''}
+        <a class="card-cta" href="${escapeHtml(waLink(msg))}" target="_blank" rel="noopener">Commander →</a>
       </div>
     </div>`;
   }).join('');
