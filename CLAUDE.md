@@ -11,7 +11,8 @@ Boutique en ligne statique **AMEREY SHOP** (prêt-à-porter homme & femme + sur-
   - Commandes via WhatsApp : `waLink()` → `https://wa.me/22956990915`.
   - Assistant « sur-mesure » multi-étapes (`WIZ_STEPS`, `wizRender`, `wizValid`) avec génération d'un PDF de mesures (`generateMesurePDF`, jsPDF).
   - Lightbox photos, bannière cookies (`localStorage` clé `amerey_cookie_choice`).
-- `assets/css/style.css` : styles (fichier volumineux, contient des images base64).
+- `assets/css/style.css` : styles. Les images de fond y sont référencées par chemin relatif au CSS (`../images/site/…`).
+- `assets/images/site/` : images de mise en page (accueil, vignettes Femme/Homme, fond sur-mesure). **Ne pas remettre d'images en base64 dans le HTML ou le CSS** : elles empêchent le cache du navigateur et pèsent un tiers de plus. Seule exception : `MESURE_BG_SMALL` dans `site-data.js`, requise sous cette forme par jsPDF.
 - `assets/images/products/` : photos produits (`.jpg`), référencées par chemin relatif dans le catalogue.
 - `data/catalogue.json` : **source de vérité du catalogue**.
 - `admin.html` : gestionnaire de catalogue autonome (HTML+JS inline) qui lit/écrit `data/catalogue.json` directement via l'API Git Data de GitHub (ref → commit → tree → blob → nouveau commit), avec un token fine-grained saisi par l'utilisateur (jamais stocké).
