@@ -18,6 +18,8 @@ Boutique en ligne statique **AMEREY SHOP** (prêt-à-porter homme & femme + sur-
 - `admin.html` : gestionnaire de catalogue autonome (HTML+JS inline) qui lit/écrit `data/catalogue.json` directement via l'API Git Data de GitHub (ref → commit → tree → blob → nouveau commit), avec un token fine-grained saisi par l'utilisateur (jamais stocké).
 - `backup-before-refactor/` : anciennes versions (ignorées par git) où le catalogue et les photos étaient embarqués dans `index.html`. Ne pas modifier.
 - `.nojekyll` : requis pour GitHub Pages.
+- `favicon.svg` (source, « A » dessiné en formes, pas en texte), `favicon.ico` (16/32/48 px) et `assets/images/icons/apple-touch-icon.png` (180 px, sans coins arrondis) : si le SVG change, régénérer les deux autres.
+- `README.md` : guide pour la personne qui gère la boutique (gestion du catalogue, token, domaine). Le garder à jour si l'admin change (libellés de boutons cités).
 
 ## Format du catalogue
 
