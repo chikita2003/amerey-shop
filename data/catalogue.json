@@ -2,6 +2,21 @@
   "femme": [
     {
       "sub": "tenue",
+      "name": "Élégance Signature",
+      "price": "65 000 FCFA",
+      "photo": "assets/images/products/elegance_signature_mwydw9v6.jpg",
+      "desc": "Robe chic et sophistiquée, sublimée par un col contrasté, de jolis boutons et une ceinture élégante qui souligne la silhouette. Une pièce raffinée pour une allure féminine et distinguée. ✨"
+    },
+    {
+      "sub": "tenue",
+      "name": "Tailleur",
+      "price": "75 000 FCFA",
+      "photo": "assets/images/products/tailleur_mwydt5zr.jpg",
+      "badge": "Premium",
+      "desc": "Élégance, raffinement et modernité\nUn ensemble tailleur blanc chic aux lignes épurées, sublimé par une coupe fluide et sophistiquée. La tenue parfaite pour une allure féminine, élégante et affirmée. 🤍"
+    },
+    {
+      "sub": "tenue",
       "name": "Robe SANDROM",
       "price": "45 000 FCFA",
       "photo": "assets/images/products/robe_sandrom_brun.jpg",
