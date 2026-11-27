@@ -26,16 +26,32 @@ Site statique hébergé gratuitement sur **GitHub Pages** : aucun serveur, aucun
 
 Le gestionnaire publie directement sur GitHub. Il a besoin d'une clé d'accès (« token ») :
 
-1. Sur GitHub : **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token**.
-2. **Repository access** : *Only select repositories* → `amerey-shop`.
-3. **Permissions → Repository permissions → Contents** : *Read and write*. Rien d'autre.
-4. Choisis une date d'expiration, génère le token et garde-le en lieu sûr (gestionnaire de mots de passe).
+1. Sur GitHub : **Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token** (lien direct : <https://github.com/settings/personal-access-tokens>).
+2. **Token name** : `admin amerey-shop`.
+3. **Expiration** : 90 jours par exemple (évite « No expiration »).
+4. **Repository access** : *Only select repositories* → `amerey-shop`.
+5. **Permissions → Repository permissions → Contents** : *Read and write*. Rien d'autre.
+6. Génère le token, copie-le avec l'icône 📋 (pas en sélectionnant le texte) et enregistre-le **tout de suite** dans ton gestionnaire de mots de passe : GitHub ne l'affiche qu'une seule fois.
 
-> Le gestionnaire n'enregistre jamais le token. Ne le partage avec personne et ne le colle jamais dans le code.
+> Le gestionnaire n'enregistre jamais le token. Ne le partage avec personne et ne le colle jamais dans le code, un message ou un site : GitHub révoque automatiquement un token rendu public.
+
+### ⏰ Rappel : le token expire
+
+Le token cesse de fonctionner à la date d'expiration choisie à sa création. Ce jour-là, le gestionnaire affiche « **GitHub refuse ce token : il est probablement expiré** ».
+
+- **Dès la création d'un token**, mets un rappel dans ton agenda ou ton téléphone **une semaine avant** sa date d'expiration (la date est visible dans la liste de tes tokens sur GitHub).
+- **À l'échéance** (ou si le message ci-dessus apparaît) : crée un nouveau token en refaisant les étapes ci-dessus, remplace l'ancien dans ton gestionnaire de mots de passe, puis supprime l'ancien token sur GitHub.
+- Utilise le **même token** sur le PC et le téléphone : en créer ou en régénérer un autre rend l'ancien inutilisable partout.
+
+| Token actuel créé le | Expire le | Rappel prévu le |
+|---|---|---|
+| … | … | … |
+
+*(Remplis ce tableau à chaque nouveau token, sans jamais y écrire le token lui-même.)*
 
 ### Ajouter, modifier ou supprimer un article
 
-1. Ouvre `admin.html` sur le site en ligne (ex. `https://ton-domaine/admin.html`).
+1. Ouvre le gestionnaire : <https://amerey.shop/admin.html>.
 2. Renseigne le propriétaire GitHub, le dépôt `amerey-shop`, la branche `main`, le chemin `data/catalogue.json` et colle le token.
 3. Clique sur **Tester la connexion**, puis **Ouvrir le catalogue**.
 4. Fais tes modifications :
