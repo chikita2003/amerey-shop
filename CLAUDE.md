@@ -57,5 +57,5 @@ Pas de tests automatisés ni de linter. Vérifier manuellement dans le navigateu
 - Le HTML est construit par template strings : **toujours passer les champs produit par `escapeHtml()`** (présente dans `app.js` et dans `admin.html`) avant de les insérer dans `innerHTML` ou un attribut.
 - `admin.html` ne gère que le format JSON (l'ancien format « catalogue embarqué dans index.html » a été retiré). Les commits de l'admin sont faits directement sur `main`, avec un message construit à partir de `pendingLog` (ex. « Ajout article : … »).
 - `admin.html` porte `<meta name="robots" content="noindex, nofollow">` : la garder.
-- Le `README.md` est en partie obsolète (il mentionne `index.html` comme chemin du catalogue dans l'admin ; le chemin actuel est `data/catalogue.json`).
+- Champs de connexion de `admin.html` : garder `autocapitalize="none" autocorrect="off" spellcheck="false"` (les claviers mobiles transformaient `main` en `Main` et abîmaient le token), et le token est nettoyé de tout espace avant usage.
 - Ne jamais committer de token GitHub ni l'ajouter dans le code.

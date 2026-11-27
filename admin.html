@@ -182,21 +182,21 @@
 
     <div id="githubSection">
       <label>Propriétaire du dépôt (ton pseudo GitHub)</label>
-      <input type="text" id="gh-owner" placeholder="Ex : ravi-dev">
+      <input type="text" id="gh-owner" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex : ravi-dev">
       <label>Nom du dépôt</label>
-      <input type="text" id="gh-repo" placeholder="Ex : amerey-shop">
+      <input type="text" id="gh-repo" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Ex : amerey-shop">
       <div class="row">
         <div>
           <label>Branche</label>
-          <input type="text" id="gh-branch" value="main">
+          <input type="text" id="gh-branch" autocapitalize="none" autocorrect="off" spellcheck="false" value="main">
         </div>
         <div>
           <label>Chemin du fichier</label>
-          <input type="text" id="gh-path" value="data/catalogue.json">
+          <input type="text" id="gh-path" autocapitalize="none" autocorrect="off" spellcheck="false" value="data/catalogue.json">
         </div>
       </div>
       <label>Token d'accès GitHub</label>
-      <input type="password" id="gh-token" placeholder="github_pat_..." autocomplete="off">
+      <input type="password" id="gh-token" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="github_pat_..." autocomplete="off">
       <p class="hint">Le token est utilisé uniquement pendant cette session et n'est jamais mémorisé. Crée un token <b>fine-grained</b>, limité à ce dépôt, avec la permission <b>Contents : Read and write</b>.</p>
       <button class="ghost" id="btnLoadGithub" type="button">Tester la connexion</button>
       <div class="status-line" id="githubStatus"><span class="dot"></span><span>Pas encore connecté</span></div>
@@ -412,7 +412,7 @@ $('btnLoadGithub').addEventListener('click', async () => {
   const repo = $('gh-repo').value.trim();
   const branch = $('gh-branch').value.trim() || 'main';
   const path = $('gh-path').value.trim() || 'data/catalogue.json';
-  const token = $('gh-token').value.trim();
+  const token = $('gh-token').value.replace(/\s+/g, ''); // un token ne contient jamais d'espace (copier-coller mobile)
   if(!owner || !repo || !token){
     setStatus('githubStatus', false, "Renseigne au minimum le propriétaire, le dépôt et le token.");
     return;
@@ -457,8 +457,14 @@ $('btnOpenCatalog').addEventListener('click', () => {
 
 function ghErrorMessage(err){
   const m = (err && err.message) || '';
-  if(m.includes('401')) return "Token invalide ou expiré. Vérifie la permission « Contents : Read and write » du dépôt.";
-  if(m.includes('404')) return "Dépôt, branche ou fichier introuvable. Vérifie le propriétaire, le nom du dépôt et le chemin.";
+  if(m.startsWith('401')){
+    const t = $('gh-token').value.replace(/\s+/g, '');
+    const looksOk = /^(github_pat_|ghp_)[A-Za-z0-9_]{20,}$/.test(t);
+    return looksOk
+      ? "GitHub refuse ce token : il est probablement expiré ou a été supprimé. Crée-en un nouveau (voir le README) et colle-le ici."
+      : "Ce token semble incomplet ou abîmé au copier-coller (il doit commencer par « github_pat_ »). Recopie-le entièrement depuis GitHub.";
+  }
+  if(m.startsWith('404')) return "Dépôt, branche ou fichier introuvable. Vérifie le propriétaire, le nom du dépôt, le chemin, et que la branche est bien « main » en minuscules.";
   if(m.includes('403')) return "Accès refusé. Le token n'a peut-être pas les droits d'écriture nécessaires.";
   return "Erreur de connexion à GitHub : " + m;
 }
