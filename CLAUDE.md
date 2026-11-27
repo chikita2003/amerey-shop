@@ -13,6 +13,7 @@ Boutique en ligne statique **AMEREY SHOP** (prêt-à-porter homme & femme + sur-
   - Lightbox photos, bannière cookies (`localStorage` clé `amerey_cookie_choice`).
 - `assets/css/style.css` : styles. Les images de fond y sont référencées par chemin relatif au CSS (`../images/site/…`).
 - `assets/images/site/` : images de mise en page (accueil, vignettes Femme/Homme, fond sur-mesure). **Ne pas remettre d'images en base64 dans le HTML ou le CSS** : elles empêchent le cache du navigateur et pèsent un tiers de plus. Seule exception : `MESURE_BG_SMALL` dans `site-data.js`, requise sous cette forme par jsPDF.
+- `assets/images/site/apercu-partage.jpg` : image d'aperçu des liens partagés (1200×630, < 300 Ko pour WhatsApp), référencée en URL absolue `https://amerey.shop/…` par les balises Open Graph de `index.html`. Si le domaine change, mettre à jour `og:url`, `og:image` et `canonical`.
 - `assets/images/products/` : photos produits (`.jpg`), référencées par chemin relatif dans le catalogue.
 - `data/catalogue.json` : **source de vérité du catalogue**.
 - `admin.html` : gestionnaire de catalogue autonome (HTML+JS inline) qui lit/écrit `data/catalogue.json` directement via l'API Git Data de GitHub (ref → commit → tree → blob → nouveau commit), avec un token fine-grained saisi par l'utilisateur (jamais stocké).
